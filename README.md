@@ -1,38 +1,26 @@
-# create-svelte
+## Duplicating the bug with edge client
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
+On main branch, the app is already setup with the edge client and all that's necessary to see the bug is to run the following commands:
 
 ```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
+npm install
+npx prisma generate --data-proxy
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+Then visit the homepage of the running dev server and you'll see the env var not found error.
 
-To create a production version of your app:
+## Duplicating absence of bug with normal client
+
+If you want to see the same code and the same env setup working with the non-edge prisma client, do the following:
+
+1. In src/lib/server/prisma.ts, import `import { PrismaClient } from '@prisma/client';` instead of `import { PrismaClient } from '@prisma/client/edge';` (or in other words, delete the trailing `/edge` from the import)
+2. In src/app.d.ts, import `import { PrismaClient } from '@prisma/client';` instead of `import { PrismaClient } from '@prisma/client/edge';` (or in other words, delete the trailing `/edge` from the import)
+3. Run the following commands
 
 ```bash
-npm run build
+npx prisma generate
+npm run dev
 ```
 
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+(note that env vars are set in the .env file and you can change the db urls if you want. You can actually provide a real db with real data and it'll show on page. If you just use dummy invalid db urls then you'll still see it tries to read from the db and the error is different from the 'env var not found' error, because it gets past that point)
